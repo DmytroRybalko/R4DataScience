@@ -8,6 +8,12 @@ Source: CRAN
 Version: 1.62.0-1
 Hash: 14dfb3e8ffe20996118306ff4de1fab2
 
+Package: Lahman
+Source: CRAN
+Version: 6.0-0
+Hash: a7db87aa61fe9f0a8c229549cb10fee6
+Requires: dplyr
+
 Package: MASS
 Source: CRAN
 Version: 7.3-47
@@ -93,6 +99,11 @@ Package: foreign
 Source: CRAN
 Version: 0.8-69
 Hash: 6cb09ceba757189aff90eb9bb72c8983
+
+Package: gapminder
+Source: CRAN
+Version: 0.2.0
+Hash: ce553042dc24e51b5a0af5bbdd0b6982
 
 Package: ggplot2
 Source: CRAN
@@ -186,6 +197,12 @@ Source: CRAN
 Version: 3.1-131
 Hash: 7f5580f9c481d6921298f224c391b308
 Requires: lattice
+
+Package: nycflights13
+Source: CRAN
+Version: 0.2.2
+Hash: dc3dbaaf3493c7ea43ff8a1523046c80
+Requires: tibble
 
 Package: openssl
 Source: CRAN
