@@ -248,3 +248,24 @@ flights %>%
     filter(carriers > 1) %>%
     arrange(desc(carriers)) 
     
+### 6. For each plane, count the number of flights before the first delay of
+### greater than 1 hour.
+flights %>%
+    filter(dep_delay < 60) %>%
+    group_by(tailnum) %>%
+    summarise(count = n())
+
+### Let`s check our solution for particualar flights:
+N108UW_59 <- flights %>%
+    filter(tailnum == "N108UW") %>%
+    select(time_hour, flight, dep_delay) %>%
+    arrange(time_hour)    
+### Let`s check our solution for particualar flights:
+N102UW_46 <- flights %>%
+    filter(tailnum == "N108UW") %>%
+    select(time_hour, flight, dep_delay) %>%
+    arrange(time_hour)    
+
+### We should stop at line 37 by data 2013-08-13 12:00:00
+N102UW_46 %>%
+    filter(dep_delay < 60)
