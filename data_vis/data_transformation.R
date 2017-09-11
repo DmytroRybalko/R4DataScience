@@ -104,18 +104,124 @@ not_cancelled %>%
     summarise(carriers = n_distinct(carrier)) %>% 
     arrange(desc(carriers))
 
+################################
+####### 5.6.7 Exercises ########
+################################
 ## 1. Brainstorm at least 5 different ways to assess the typical delay
 ## characteristics of a group of flights. Consider the following scenarios:
 
-## 1.1 A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of
-## the time
+## View the number of fligths per day
 not_cancelled %>% 
     group_by(year, month, day) %>%
-    summarise(arr_med = median(arr_delay)) %>%
-    filter(arr_med > 15)
+    summarise(flights = n())
 
-## Look at the number of cancelled flights per day. Is there a pattern?
-## Is the proportion of cancelled flights related to the average delay?
+## 1.1 A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of
+## the time
+### 1. Create new variable for 01-01-2013
+one_day <- filter(flights,
+                  month == 1,
+                  day == 1,
+                  !is.na(arr_delay)) %>%
+    select(month, day, arr_delay)
+### 2. Calculate median for this day
+one_day %>%
+    mutate(med = median(arr_delay))
+### 3. Show all flights with arr_delay is 15 min early of 50% of the time 
+one_day %>%
+    mutate(med = median(arr_delay),
+        diff = med - arr_delay) %>%
+    filter(diff > 0 & diff <= 15 )
+## 4. Show all flights with arr_delay is 15 min later of 50% of the time
+one_day %>%
+    mutate(med = median(arr_delay),
+           diff = arr_delay - med) %>%
+    filter(diff >= 15 )
+
+## 5. Solve for whole data: Show all flights with arr_delay is 15 min early
+## of 50% of the time 
 not_cancelled %>% 
-    group_by(year, month, day)
+    group_by(year, month, day) %>%
+    summarise(flights = n(), 
+              arr_med = median(arr_delay),
+              fly_15 = sum(arr_med - arr_delay > 0 & arr_med - arr_delay <= 15))
+
+## 6. More siply variant
+## ??????????
+
+## 1.2 A flight is always 10 minutes late
+not_cancelled %>% 
+    group_by(year, month, day) %>%
+    filter(arr_delay == 10)
+
+
+## 4. Look at the number of cancelled flights per day. Is there a pattern?
+## Is the proportion of cancelled flights related to the average delay?
+cancelled <- flights %>%
+    filter(is.na(dep_delay), is.na(arr_delay))
     
+cancelled %>%
+    group_by(year, month, day) %>%
+    summarise(canc = n())
+    
+flights %>% 
+    group_by(year, month, day) %>% 
+    summarise(all_fly = n(),
+              fly = sum(!is.na(dep_delay)),
+              no_fly = sum(is.na(dep_delay)),
+              avg_fly = mean(dep_delay, na.rm = T))
+###########################################################
+########## 5.7 Grouped mutates (and filters) ##############
+
+popular_dests <- flights %>% 
+    group_by(dest)
+## Count all flights for every destination    
+popular_dests %>%
+    summarise(n())
+## Find all groups bigger than a threshold
+popular_dests %>%
+    filter(n() > 365)
+
+vignette("window-functions")
+
+################################
+####### 5.7.1 Exercises ########
+################################
+
+## Which plane (tailnum) has the worst on-time record?
+flights %>%
+    arrange(desc(arr_delay))
+
+## What time of day should you fly if you want to avoid delays as much as
+## possible?
+### 1. Choose flights without delay
+no_delay <- flights %>%
+    filter(dep_delay == 0) %>%
+    transmute(sched_dep_time,
+              hour = sched_dep_time %/% 100,
+              minute = sched_dep_time %% 100)
+no_delay
+### 2. Grouped flights by hour
+no_delay %>%
+    group_by(hour) %>%
+    summarise(N = n()) %>%
+    arrange(desc(N))
+
+## For each destination, compute the total minutes of delay.
+### 1. Choose all flights with delays:
+not_cancelled <- flights %>% 
+    filter(!is.na(dep_delay))
+not_cancelled
+### 2. Grouped flights by dest and count sum
+not_cancelled %>%
+    group_by(dest) %>%
+    summarise(total = sum(dep_delay)) %>%
+    arrange(desc(total))
+
+### 3. For each flight compute the proportion of the total delay for its
+### destination.
+not_cancelled %>%
+    mutate(prop = dep_delay / sum(dep_delay)) %>%
+    group_by(dest) %>%
+    summarise(total = sum(dep_delay),
+              tot_prop = sum(prop)) %>%
+    arrange(desc(total))
