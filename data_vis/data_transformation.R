@@ -225,3 +225,17 @@ not_cancelled %>%
     summarise(total = sum(dep_delay),
               tot_prop = sum(prop)) %>%
     arrange(desc(total))
+
+### 4. Look at each destination. Can you find flights that are suspiciously
+### fast? (i.e. flights that represent a potential data entry error).
+not_cancelled %>%
+    group_by(dest) %>%
+    select(dest, air_time, distance) %>%
+    arrange(dest, desc(air_time))
+### Compute the air time a flight relative to the shortest flight to that
+### destination. Which flights were most delayed in the air?
+not_cancelled %>%
+    group_by(dest) %>%
+    select(dest, air_time, distance) %>%
+    mutate(rel_time = air_time / min(air_time, na.rm = T)) %>%
+    arrange(desc(rel_time))
