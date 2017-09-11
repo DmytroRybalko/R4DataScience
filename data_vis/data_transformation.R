@@ -239,3 +239,12 @@ not_cancelled %>%
     select(dest, air_time, distance) %>%
     mutate(rel_time = air_time / min(air_time, na.rm = T)) %>%
     arrange(desc(rel_time))
+
+### 5. Find all destinations that are flown by at least two carriers. Use that
+### information to rank the carriers.
+flights %>%
+    group_by(dest) %>%
+    summarise(carriers = n_distinct(carrier)) %>%
+    filter(carriers > 1) %>%
+    arrange(desc(carriers)) 
+    
