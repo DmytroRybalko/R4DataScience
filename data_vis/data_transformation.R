@@ -264,8 +264,25 @@ N108UW_59 <- flights %>%
 N102UW_46 <- flights %>%
     filter(tailnum == "N108UW") %>%
     select(time_hour, flight, dep_delay) %>%
-    arrange(time_hour)    
+    arrange(time_hour)
 
 ### We should stop at line 37 by data 2013-08-13 12:00:00
-N102UW_46 %>%
-    filter(dep_delay < 60)
+res <- N102UW_46 %>%
+    summarise(x = min(dep_delay - 60))
+    #mutate(r = row_number(desc(dep_delay > 60)))
+    #filter(between(dep_delay, n(), 60))
+    
+    #slice(dep_delay > 60) %>%
+    #summarise(x = min(time_hour))
+    #mutate(r = first(min(time_hour)))
+    
+    #mutate(r = dep_delay[dep_delay > 60])
+    #mutate(r = min_rank(desc(dep_delay < 60)))
+    #group_by(time_hour) %>%
+    #mutate(x = min(dep_delay > 60))
+    #group_by(dep_delay) %>%
+    #summarise(x = min(dep_delay > 60)) %>%
+    #top_n(1, dep_delay > 60)
+res2 <- res %>%
+    filter(cumsum(x) <= 1)
+
