@@ -1,7 +1,8 @@
 ## Start here!!! 
 library(nycflights13)
 library(tidyverse)
-flights
+
+vignette("window-functions")
 
 ## Useful tip: save result and print it
 (dec25 <- filter(flights, month == 12, day == 25))
@@ -23,86 +24,6 @@ View(my_ans)
 
 ## 5.Arrived more than two hours late, but didn’t leave late
 (my_ans <- filter(flights, dep_delay == 0 | arr_delay >= 120))
-
-## Use arrange()
-(my_ans <- arrange(flights, desc(dep_delay)))
-
-## Use select
-
-## Select columns by name
-select(flights, year, month, day)
-# Select all columns between year and day (inclusive)
-select(flights, year:day)
-# Select all columns except those from year to day (inclusive)
-select(flights, -(year:day))
-
-(select(flights, time_hour, air_time, everything()))
-
-## Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time,
-## and arr_delay from flights.
-vars <- c("dep_time", "dep_delay", "arr_time", "arr_delay")
-(select(flights, vars))
-# Use everything()
-(select(flights, dep_time, dep_delay, arr_time, arr_delay, everything()))
-# Use one_of()
-(select(flights, one_of(vars)))
-
-## Use mutate
-flights_sml <- select(flights, 
-                      year:day, 
-                      ends_with("delay"), 
-                      distance, 
-                      air_time
-)
-View(flights_sml)
-
-mutate(flights_sml,
-       gain = arr_delay - dep_delay,
-       hours = air_time / 60,
-       gain_per_hour = gain / hours
-)
-
-transmute(flights,
-          gain = arr_delay - dep_delay,
-          hours = air_time / 60,
-          gain_per_hour = gain / hours
-)
-
-## Grouped summaries with summarise()
-## grouping doesn't change how the data looks. It changes how it acts with the
-## other dplyr verbs
-by_day <- group_by(flights, year, month, day)
-summarise(by_day, delay = mean(dep_delay, na.rm = TRUE))
-
-## For example, let’s look at the planes (identified by their tail number)
-## that have the highest average delays:
-not_cancelled <- flights %>% 
-    filter(!is.na(dep_delay), !is.na(arr_delay))
-
-not_cancelled %>% 
-    group_by(year, month, day) %>% 
-    summarise(mean = mean(dep_delay))
-
-delays <- not_cancelled %>% 
-    group_by(tailnum) %>% 
-    summarise(
-        delay = mean(arr_delay, na.rm = TRUE),
-        n = n()
-    )
-
-ggplot(data = delays, mapping = aes(x = n, y = delay)) + 
-    geom_point(alpha = 1/10)
-
-delays %>% 
-    filter(n > 25) %>% 
-    ggplot(mapping = aes(x = n, y = delay)) + 
-    geom_point(alpha = 1/10)
-
-# Which destinations have the most carriers?
-not_cancelled %>% 
-    group_by(dest) %>% 
-    summarise(carriers = n_distinct(carrier)) %>% 
-    arrange(desc(carriers))
 
 ################################
 ####### 5.6.7 Exercises ########
@@ -145,9 +66,6 @@ not_cancelled %>%
               arr_med = median(arr_delay),
               fly_15 = sum(arr_med - arr_delay > 0 & arr_med - arr_delay <= 15))
 
-## 6. More siply variant
-## ??????????
-
 ## 1.2 A flight is always 10 minutes late
 not_cancelled %>% 
     group_by(year, month, day) %>%
@@ -169,19 +87,8 @@ flights %>%
               fly = sum(!is.na(dep_delay)),
               no_fly = sum(is.na(dep_delay)),
               avg_fly = mean(dep_delay, na.rm = T))
-###########################################################
-########## 5.7 Grouped mutates (and filters) ##############
 
-popular_dests <- flights %>% 
-    group_by(dest)
-## Count all flights for every destination    
-popular_dests %>%
-    summarise(n())
-## Find all groups bigger than a threshold
-popular_dests %>%
-    filter(n() > 365)
 
-vignette("window-functions")
 
 ################################
 ####### 5.7.1 Exercises ########
@@ -250,39 +157,44 @@ flights %>%
     
 ### 6. For each plane, count the number of flights before the first delay of
 ### greater than 1 hour.
-flights %>%
-    filter(dep_delay < 60) %>%
+not_cancelled <- flights %>% 
+    filter(!is.na(dep_delay)) %>%
+    select(tailnum, time_hour, dep_delay) %>%
+    arrange(time_hour)
+
+test <- not_cancelled %>%
     group_by(tailnum) %>%
-    summarise(count = n())
+    mutate(n = 1:n()) %>%
+    top_n(1, dep_delay > 60) %>%
+    #filter(tailnum == "N108UW")
+    summarise(up_60 = first(n) - 1)
 
 ### Let`s check our solution for particualar flights:
-N108UW_59 <- flights %>%
-    filter(tailnum == "N108UW") %>%
-    select(time_hour, flight, dep_delay) %>%
-    arrange(time_hour)    
+N0EGMQ_354 <- not_cancelled %>%
+    filter(tailnum == "N0EGMQ")
+    
+res_354 <- N0EGMQ_354 %>%
+    mutate(n = 1:n()) %>%
+    top_n(1, dep_delay > 60)
+res_354_2 <- res_354[1,4] - 1
+res_354_2 # right ans: 53
+### Let`s check our solution for N104UW:
+N104UW_47 <- not_cancelled %>%
+    filter(tailnum == "N104UW")
+
+res_47 <- N104UW_47 %>%
+    mutate(n = 1:n()) %>%
+    top_n(1, dep_delay > 60)
+res_47_2 <- res_47[1,4] - 1
+res_47_2 # right ans: 3
+
 ### Let`s check our solution for particualar flights:
-N102UW_46 <- flights %>%
-    filter(tailnum == "N108UW") %>%
-    select(time_hour, flight, dep_delay) %>%
-    arrange(time_hour)
+N102UW_46 <- not_cancelled %>%
+    filter(tailnum == "N108UW")
 
 ### We should stop at line 37 by data 2013-08-13 12:00:00
 res <- N102UW_46 %>%
-    summarise(x = min(dep_delay - 60))
-    #mutate(r = row_number(desc(dep_delay > 60)))
-    #filter(between(dep_delay, n(), 60))
-    
-    #slice(dep_delay > 60) %>%
-    #summarise(x = min(time_hour))
-    #mutate(r = first(min(time_hour)))
-    
-    #mutate(r = dep_delay[dep_delay > 60])
-    #mutate(r = min_rank(desc(dep_delay < 60)))
-    #group_by(time_hour) %>%
-    #mutate(x = min(dep_delay > 60))
-    #group_by(dep_delay) %>%
-    #summarise(x = min(dep_delay > 60)) %>%
-    #top_n(1, dep_delay > 60)
-res2 <- res %>%
-    filter(cumsum(x) <= 1)
-
+    mutate(n = 1:n()) %>%
+    top_n(1, dep_delay > 60)
+res2 <- res[1,4] - 1
+res2 # right ans: 36
