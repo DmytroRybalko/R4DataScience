@@ -8,12 +8,6 @@ Source: CRAN
 Version: 1.62.0-1
 Hash: 14dfb3e8ffe20996118306ff4de1fab2
 
-Package: Lahman
-Source: CRAN
-Version: 6.0-0
-Hash: a7db87aa61fe9f0a8c229549cb10fee6
-Requires: dplyr
-
 Package: MASS
 Source: CRAN
 Version: 7.3-47
@@ -54,7 +48,7 @@ Package: broom
 Source: CRAN
 Version: 0.4.2
 Hash: 7ebcffa46afb467e3f3c5687946f6e1a
-Requires: dplyr, nlme, plyr, psych, reshape2, stringr, tidyr
+Requires: dplyr, plyr, psych, reshape2, stringr, tidyr
 
 Package: cellranger
 Source: CRAN
@@ -133,6 +127,18 @@ Source: CRAN
 Version: 0.3
 Hash: 3fca8a1c97e6cfb297fe3f4690f82c58
 
+Package: htmltools
+Source: CRAN
+Version: 0.3.6
+Hash: 5b070a04ef8df1953544873db1c5896e
+Requires: Rcpp, digest
+
+Package: htmlwidgets
+Source: CRAN
+Version: 0.9
+Hash: 7514f6ea9f3bef6d9b6c945095275302
+Requires: htmltools, jsonlite, yaml
+
 Package: httr
 Source: CRAN
 Version: 1.3.0
@@ -192,12 +198,6 @@ Version: 0.4.3
 Hash: f96d896947fcaf9b6d0074002e9f4f9d
 Requires: colorspace
 
-Package: nlme
-Source: CRAN
-Version: 3.1-131
-Hash: 7f5580f9c481d6921298f224c391b308
-Requires: lattice
-
 Package: nycflights13
 Source: CRAN
 Version: 0.2.2
@@ -234,7 +234,7 @@ Package: psych
 Source: CRAN
 Version: 1.7.5
 Hash: 0c076a96de916d0d26d866e83909d961
-Requires: foreign, lattice, mnormt, nlme
+Requires: foreign, lattice, mnormt
 
 Package: purrr
 Source: CRAN
@@ -331,3 +331,8 @@ Source: CRAN
 Version: 1.1.1
 Hash: b326a762ddb04eef605cc88987fa71fb
 Requires: BH, Rcpp
+
+Package: yaml
+Source: CRAN
+Version: 2.1.14
+Hash: c81230c3a7d9ba20607ad6b4331173d1
