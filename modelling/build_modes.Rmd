@@ -1,0 +1,82 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+options(na.action = na.warn)
+```
+
+###Why are low quality diamonds more expensive?
+```{r}
+ggplot(diamonds, aes(cut, price)) + geom_boxplot()
+```
+```{r}
+ggplot(diamonds, aes(color, price)) + geom_boxplot()
+```
+```{r}
+ggplot(diamonds, aes(clarity, price)) + geom_boxplot()
+```
+It looks like lower quality diamonds have higher prices because there is an important confounding variable: the weight (carat) of the diamond.
+```{r}
+ggplot(diamonds, aes(carat, price)) + 
+  geom_hex(bins = 50)
+```
+We can make it easier to see how the other attributes of a diamond affect its relative price by fitting a model to separate out the effect of carat. But first, lets make a couple of tweaks to the diamonds dataset to make it easier to work with:
+
+Focus on diamonds smaller than 2.5 carats (99.7% of the data)
+Log-transform the carat and price variables.
+```{r}
+diamonds2 <- diamonds %>% 
+  filter(carat <= 2.5) %>% 
+  mutate(lprice = log2(price), lcarat = log2(carat))
+ggplot(diamonds2, aes(lcarat, lprice)) + 
+  geom_hex(bins = 50)
+```
+ Make the pattern explicit by fitting a model:
+```{r}
+mod_diamond <- lm(lprice ~ lcarat, data = diamonds2)
+```
+
+```{r}
+grid <- diamonds2 %>% 
+  data_grid(carat = seq_range(carat, 20)) %>% 
+  mutate(lcarat = log2(carat)) %>% 
+  add_predictions(mod_diamond, "lprice") %>% 
+  mutate(price = 2 ^ lprice)
+
+ggplot(diamonds2, aes(carat, price)) + 
+  geom_hex(bins = 50) + 
+  geom_line(data = grid, colour = "red", size = 1)
+```
+Now we can look at the residuals, which verifies that we’ve successfully removed the strong linear pattern:
+```{r}
+diamonds2 <- diamonds2 %>% 
+  add_residuals(mod_diamond, "lresid")
+
+ggplot(diamonds2, aes(lcarat, lresid)) + 
+  geom_hex(bins = 50)
+```
+Importantly, we can now re-do our motivating plots using those residuals instead of price
+```{r}
+ggplot(diamonds2, aes(cut, lresid)) + geom_boxplot()
+ggplot(diamonds2, aes(color, lresid)) + geom_boxplot()
+ggplot(diamonds2, aes(clarity, lresid)) + geom_boxplot()
+```
+###A more complicated model
+```{r}
+mod_diamond2 <- lm(lprice ~ lcarat + color + cut + clarity, data = diamonds2)
+```
+
+```{r}
+grid <- diamonds2 %>% 
+  data_grid(cut, .model = mod_diamond2) %>% 
+  add_predictions(mod_diamond2)
+grid
+
+ggplot(grid, aes(cut, pred)) + 
+  geom_point()
+```
+
